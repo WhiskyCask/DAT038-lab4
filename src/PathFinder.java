@@ -1,9 +1,15 @@
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Random;
 import java.util.Queue;
 import java.util.PriorityQueue;
-import java.util.Random;
+import java.util.Collections;
+import java.util.Comparator;
 
 import java.util.stream.Collectors;
 
@@ -63,7 +69,6 @@ public class PathFinder<V> {
         throw new IllegalArgumentException("Unknown search algorithm: " + algorithm);
     }
 
-
     public Result<V> searchRandom(V start, V goal) {
         int visitedNodes = 0;
         LinkedList<V> path = new LinkedList<>();
@@ -94,13 +99,56 @@ public class PathFinder<V> {
 
     public Result<V> searchDijkstra(V start, V goal) {
         int visitedNodes = 0;
-        /********************
-         * TODO: Task 1 
-         ********************/
-        return new Result<>(false, start, null, -1, null, visitedNodes);
-    }
-    
+        Set<V> discovered = new HashSet<>();
+        Map<V, Double> distTo = new HashMap<>();    /* The accumulated weight for each node V in the shortest path, will also be used to track if we visited a node */
+        Map<V, V> edgeTo = new HashMap<>();         /* The node before each node V in the shortest path */
+        Queue<V> pq = new PriorityQueue<>(1, new Comparator<V>() { /* Breaking data structure invariant? */
+            @Override
+            public int compare(V o1, V o2) {
+                return Double.compare(distTo.get(o1), distTo.get(o2));
+            }
+        });
 
+        distTo.put(start, 0.0);
+        edgeTo.put(start, null);
+        pq.add(start);
+
+        while (!pq.isEmpty()) {
+            V v = pq.remove();
+
+            if (!discovered.contains(v)) {
+                discovered.add(v);
+
+                if (v.equals(goal)) {
+                    /* Build path */
+                    List<V> path = new LinkedList<>();
+                    for (V u = goal; u != null; u = edgeTo.get(u))
+                        path.add(u);
+                    Collections.reverse(path);
+                    return new Result<>(true, start, goal, distTo.get(goal), path, discovered.size());
+                }
+
+                for (DirectedEdge<V> e: graph.outgoingEdges(v)) {
+                    V w = e.to();
+                    double distAlt = distTo.get(v) + e.weight();
+                    /* If we haven't seen the node yet */
+                    if (!distTo.containsKey(w)) {
+                        distTo.put(w, distAlt);
+                        edgeTo.put(w, v);
+                        pq.add(w);
+                    }
+                    /* Else relax */
+                    if (distAlt < distTo.get(w)) {
+                        distTo.put(w, distAlt);
+                        edgeTo.put(w, v);
+                        pq.add(w); /* Because we have no decrease priority */
+                    }
+                }
+            }
+        }
+
+        return new Result<>(false, start, null, -1, null, discovered.size());
+    }
     public Result<V> searchAstar(V start, V goal) {
         int visitedNodes = 0;
         /********************
