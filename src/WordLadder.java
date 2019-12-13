@@ -17,12 +17,10 @@ public class WordLadder implements DirectedGraph<String> {
     private Set<String> dictionary;
     private Set<Character> charset;
 
-
     public WordLadder() {
         dictionary = new HashSet<>();
         charset = new HashSet<>();
     }
-
 
     public WordLadder(String file) throws IOException {
         dictionary = new HashSet<>();
@@ -31,7 +29,6 @@ public class WordLadder implements DirectedGraph<String> {
             .filter(line -> !line.startsWith("#"))
             .forEach(word -> addWord(word.trim()));
     }
-
 
     /**
      * Adds the {@code word} to the dictionary, if it only contains letters.
@@ -49,14 +46,12 @@ public class WordLadder implements DirectedGraph<String> {
         }
     }
 
-
     /**
      * @return the number of words in the dictionary
      */
     public int nrNodes() {
         return dictionary.size();
     }
-
 
     /**
      * @param  word  a graph node
@@ -66,9 +61,20 @@ public class WordLadder implements DirectedGraph<String> {
         /********************
          * TODO: Task 2
          ********************/
-        return new LinkedList<>();
-    }
+        List<DirectedEdge<String>> edges = new LinkedList<>();
 
+        char[] charArray = word.toCharArray();
+        for (int i = 0; i < charArray.length; i++) {
+            for (char c : charset) {
+                charArray[i] = c;
+                String s = String.valueOf(charArray);
+                if (dictionary.contains(s)) edges.add(new DirectedEdge<>(word, s, 1.0));
+            }
+            charArray[i] = word.charAt(i);
+        }
+
+        return edges;
+    }
 
     public double guessCost(String v, String w) {
         /********************
@@ -76,7 +82,6 @@ public class WordLadder implements DirectedGraph<String> {
          ********************/
         return 0;
     }
-
 
     /**
      * @return a string representation of the graph
@@ -96,7 +101,6 @@ public class WordLadder implements DirectedGraph<String> {
         }
         return s.toString();
     }
-
 
     /**
      * Unit tests the class
