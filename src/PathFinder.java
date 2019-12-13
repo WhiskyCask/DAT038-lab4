@@ -100,8 +100,8 @@ public class PathFinder<V> {
     public Result<V> searchDijkstra(V start, V goal) {
         int visitedNodes = 0;
         Set<V> discovered = new HashSet<>();
-        Map<V, Double> distTo = new HashMap<>();    /* The accumulated weight for each node V in the shortest path, will also be used to track if we visited a node */
-        Map<V, V> edgeTo = new HashMap<>();         /* The node before each node V in the shortest path */
+        Map<V, Double> distTo = new HashMap<>();
+        Map<V, V> edgeTo = new HashMap<>();
         Queue<V> pq = new PriorityQueue<>(1, new Comparator<V>() { /* Breaking data structure invariant? */
             @Override
             public int compare(V o1, V o2) {
