@@ -131,14 +131,8 @@ public class PathFinder<V> {
                 for (DirectedEdge<V> e: graph.outgoingEdges(v)) {
                     V w = e.to();
                     double distAlt = distTo.get(v) + e.weight();
-                    /* If we haven't seen the node yet */
-                    if (!distTo.containsKey(w)) {
-                        distTo.put(w, distAlt);
-                        edgeTo.put(w, v);
-                        pq.add(w);
-                    }
-                    /* Else relax */
-                    if (distAlt < distTo.get(w)) {
+                    /* If we haven't seen the node yet or relax */
+                    if (!distTo.containsKey(w) || distAlt < distTo.get(w)) {
                         distTo.put(w, distAlt);
                         edgeTo.put(w, v);
                         pq.add(w); /* Because we have no decrease priority */
@@ -149,12 +143,55 @@ public class PathFinder<V> {
 
         return new Result<>(false, start, null, -1, null, discovered.size());
     }
+
     public Result<V> searchAstar(V start, V goal) {
-        int visitedNodes = 0;
-        /********************
-         * TODO: Task 3
-         ********************/
-        return new Result<>(false, start, null, -1, null, visitedNodes);
+        Set<V> discovered = new HashSet<>();
+        Map<V, V> edgeTo = new HashMap<>();     /* The node before each node V in the shortest path */
+        Map<V, Double> gScore = new HashMap<>();
+        Map<V, Double> fScore = new HashMap<>();
+        Queue<V> pq = new PriorityQueue<>(1, new Comparator<V>() { /* Breaking data structure invariant? */
+            @Override
+            public int compare(V o1, V o2) {
+                return Double.compare(fScore.get(o1), fScore.get(o2));
+            }
+        });
+
+        edgeTo.put(start, null);
+        gScore.put(start, 0.0);
+        fScore.put(start, graph.guessCost(start, goal));
+        pq.add(start);
+
+        while (!pq.isEmpty()) {
+            V v = pq.remove();
+
+            if (!discovered.contains(v)) {
+                discovered.add(v);
+
+                if (v.equals(goal)) {
+                    /* Build path */
+                    List<V> path = new LinkedList<>();
+                    for (V u = goal; u != null; u = edgeTo.get(u))
+                        path.add(u);
+                    Collections.reverse(path);
+                    return new Result<>(true, start, goal, gScore.get(goal), path, discovered.size());
+                }
+
+                for (DirectedEdge<V> e: graph.outgoingEdges(v)) {
+                    V w = e.to();
+
+                    double distAlt = gScore.get(v) + e.weight();
+                    /* If we haven't seen the node yet or relax */
+                    if (!fScore.containsKey(w) || distAlt < gScore.get(w)) {
+                        gScore.put(w, distAlt);
+                        fScore.put(w, distAlt + graph.guessCost(w, goal));
+                        edgeTo.put(w, v);
+                        pq.add(w); /* Because we have no decrease priority */
+                    }
+                }
+            }
+        }
+
+        return new Result<>(false, start, null, -1, null, discovered.size());
     }
 
 }
