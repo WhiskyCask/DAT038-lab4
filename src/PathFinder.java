@@ -98,10 +98,9 @@ public class PathFinder<V> {
 
 
     public Result<V> searchDijkstra(V start, V goal) {
-        int visitedNodes = 0;
         Set<V> discovered = new HashSet<>();
         Map<V, Double> distTo = new HashMap<>();
-        Map<V, V> edgeTo = new HashMap<>();
+        Map<V, V> nodeTo = new HashMap<>();
         Queue<V> pq = new PriorityQueue<>(1, new Comparator<V>() { /* Breaking data structure invariant? */
             @Override
             public int compare(V o1, V o2) {
@@ -110,7 +109,7 @@ public class PathFinder<V> {
         });
 
         distTo.put(start, 0.0);
-        edgeTo.put(start, null);
+        nodeTo.put(start, null);
         pq.add(start);
 
         while (!pq.isEmpty()) {
@@ -122,7 +121,7 @@ public class PathFinder<V> {
                 if (v.equals(goal)) {
                     /* Build path */
                     List<V> path = new LinkedList<>();
-                    for (V u = goal; u != null; u = edgeTo.get(u))
+                    for (V u = goal; u != null; u = nodeTo.get(u))
                         path.add(u);
                     Collections.reverse(path);
                     return new Result<>(true, start, goal, distTo.get(goal), path, discovered.size());
@@ -134,7 +133,7 @@ public class PathFinder<V> {
                     /* If we haven't seen the node yet or relax */
                     if (!distTo.containsKey(w) || distAlt < distTo.get(w)) {
                         distTo.put(w, distAlt);
-                        edgeTo.put(w, v);
+                        nodeTo.put(w, v);
                         pq.add(w); /* Because we have no decrease priority */
                     }
                 }
@@ -146,7 +145,7 @@ public class PathFinder<V> {
 
     public Result<V> searchAstar(V start, V goal) {
         Set<V> discovered = new HashSet<>();
-        Map<V, V> edgeTo = new HashMap<>();     /* The node before each node V in the shortest path */
+        Map<V, V> nodeTo = new HashMap<>();     /* The node before each node V in the shortest path */
         Map<V, Double> gScore = new HashMap<>();
         Map<V, Double> fScore = new HashMap<>();
         Queue<V> pq = new PriorityQueue<>(1, new Comparator<V>() { /* Breaking data structure invariant? */
@@ -156,7 +155,7 @@ public class PathFinder<V> {
             }
         });
 
-        edgeTo.put(start, null);
+        nodeTo.put(start, null);
         gScore.put(start, 0.0);
         fScore.put(start, graph.guessCost(start, goal));
         pq.add(start);
@@ -170,7 +169,7 @@ public class PathFinder<V> {
                 if (v.equals(goal)) {
                     /* Build path */
                     List<V> path = new LinkedList<>();
-                    for (V u = goal; u != null; u = edgeTo.get(u))
+                    for (V u = goal; u != null; u = nodeTo.get(u))
                         path.add(u);
                     Collections.reverse(path);
                     return new Result<>(true, start, goal, gScore.get(goal), path, discovered.size());
@@ -184,7 +183,7 @@ public class PathFinder<V> {
                     if (!fScore.containsKey(w) || distAlt < gScore.get(w)) {
                         gScore.put(w, distAlt);
                         fScore.put(w, distAlt + graph.guessCost(w, goal));
-                        edgeTo.put(w, v);
+                        nodeTo.put(w, v);
                         pq.add(w); /* Because we have no decrease priority */
                     }
                 }
