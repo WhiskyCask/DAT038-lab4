@@ -58,9 +58,6 @@ public class WordLadder implements DirectedGraph<String> {
      * @return the edges incident on node {@code word} as a List
      */
     public List<DirectedEdge<String>> outgoingEdges(String word) {
-        /********************
-         * TODO: Task 2
-         ********************/
         List<DirectedEdge<String>> edges = new LinkedList<>();
 
         char[] charArray = word.toCharArray();
